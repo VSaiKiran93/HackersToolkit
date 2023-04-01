@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+.item1 { grid-area: header; }
+.item2 { grid-area: menu; }
+.item3 { grid-area: main; }
+.item4 { grid-area: right; }
+.item5 { grid-area: footer; }
+
+.grid-container {
+  display: grid;
+  grid-template-areas:
+    'header header header header header header'
+    'menu main main main right right'
+    'menu footer footer footer footer footer';
+  gap: 10px;
+  background-color: #ffffff;
+  padding: 10px;
+}
+
+</style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="script.js"></script>
+</head>
+<body>
+
+<h1 style="text-align: center;">Hacker Tool Kit </h1>
+
+<p>Enter the required input parameters to scan the target</p>
+
+<div class="grid-container">
+  <div class="item1">Scanners</div>
+
+  <div class="item2">
+    <div class="row">
+    <label>
+        <input type="radio" checked="checked" name="radio" value="nmap"> Nmap
+        <span class="checkmark"></span>
+      </label>
+    </div>
+    <div class="row">
+      <label>
+        <input type="radio" name="radio" value="openvas"> OpenVAS
+        <span class="checkmark"></span>
+      </label>
+    </div>
+  </div>
+  <div class="item3">
+    <div class="row">
+        <form id="scan-form">
+            <input type="text" id="input-text" placeholder="IP address">
+            <input type="text" id="port-range" placeholder="Port range">
+            <select name="scan_type" id="scan-type">
+                <option value="S">TCP SYN scan</option>
+                <option value="sS">TCP SYN Stealth Scan</option>
+                <option value="T4">TCP Connect Scan with Aggressive Timing</option><option value="A">TCP ACK Scan</option>
+                <option value="U">UDP Scan</option>
+                <option value="F">TCP FIN Scan</option>
+                <option value="n">TCP Null Scan</option>
+            </select>
+            <!-- <input type="submit" id="submit-button" value="Submit"> -->
+            <button id="submit-button">Scan</button>
+        </form>
+    </div>
+  </div>
+
+  <!-- <div class="item4">Right</div> -->
+
+  <div class="item5">
+    
+    <div class="col-md-1">
+        <label for="output-text">Scan Result:</label>
+    </div>
+
+    <div class="col-md-1">
+	    <textarea id="output-text" rows="50" cols="60"></textarea>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
+
+
