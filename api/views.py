@@ -1,12 +1,11 @@
-import subprocess
 from django.shortcuts import render
 from rest_framework.views import APIView
 from django.http import JsonResponse
-from django.views import View
 from rest_framework import status
 from rest_framework.response import Response
+import subprocess
 from .serializers import NmapScanSerializer
-#from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt
 
 #Create your views here
 
@@ -17,37 +16,53 @@ from .serializers import NmapScanSerializer
 
 class NmapScanView(APIView):
 
-    #post method to post input parameters
+    #Get method to render the HTML template on GET request
+    def get(self, request):
+        return render(request, 'index.html')
+
+    #Post method to handle form submission for input parameters
     def post(self, request, format=None):
 
-        serializer = NmapScanSerializer(data=request.data)
+        serializer = NmapScanSerializer(data=request.POST)
 
         #give the input parameters using request
-        if serializer.valid():
-            ip_address = request.data.get('ip_address')
-            port_range = request.data.get('port_range')
-            scan_type = request.data.get('scan_type')
+        if serializer.is_valid():
+            ip_address = serializer.validated_data['ip_address']
+            port_range = serializer.validated_data['port_range']
+            scan_type = serializer.validated_data['scan_type']
 
-            cmd = ['nmap', '-{0}'.format(scan_type), '-p', port_range, ip_address]
-            p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            out, err = p.communicate()
-            return Response({'output': out}, status=status.HTTP_200_OK)
+            # Mapping of scan types to nmap commands
+            commands = {
+                'Intense scan': 'nmap -T4 -A -v',
+                'Intense scan with UDP': 'nmap -sS -sU -T4 -A -v',
+                'Intense scan, all TCP ports': 'nmap -p 1-65535 -T4 -A -v',
+                'Intense scan, no ping': 'nmap -T4 -A -v -Pn',
+                'Ping scan': 'nmap -sn',
+                'Quick scan': 'nmap -T4 -F',
+                'Quick scan plus': 'nmap -sV -T4 -O -F --version-light',
+                'Quick traceroute': 'nmap -sn --traceroute',
+                'Regular scan': 'nmap',
+                'Slow comprehensive scan': 'nmap -sS -sU -T4 -A -v -PE -PS80,443 -PA3389 -PP -PU40125 -PY'
+            }
+
+            if scan_type in commands:
+                cmd = commands[scan_type].split()
+                cmd += ['-p', port_range, ip_address]
+                p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                out, err = p.communicate()
+                print(out)
+                return JsonResponse({'output': out.decode('utf-8')}, status=status.HTTP_200_OK)
+            else:
+                print(err)
+                return JsonResponse({'error': 'Invalid scan type'}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-            #Scan the target using nmap by calling the function nmap_scan below
-            #scan_report = self.nmap_scan(ip_address, port_range, scan_type)
+    #Allow CSRF exemption for the post request method
+    @csrf_exempt
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
 
-            #Parse the scan report and create a Json response
-            #parsed_report = {"scan_report": scan_report}
-            #return Response(parsed_report, status=200)
-
-    #created an API to scan using nmap command which takes the imput parameters using post method
-    #def nmap_scan(self, ip_address, port_range, scan_type):
-        #command = ["nmap", "-sS" + scan_type, "-p", port_range, ip_address]
-        #result = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        #output, error = p.communicate()
-        #return Response(output.decode('utf-8'))
 
 
 
