@@ -1,3 +1,4 @@
+<<<<<<< HEAD:Application/api/views.py
 from rest_framework.views import APIView
 from rest_framework.response import Response
 import subprocess
@@ -69,3 +70,49 @@ class NmapScanView(APIView):
             report.append(host_report)
         
         return Response({'scan_type': scan_type, 'scan_results': report})
+=======
+from django.shortcuts import render
+from rest_framework.views import APIView
+from rest_framework.response import Response
+import subprocess
+import re
+import time
+
+class NmapScanView(APIView):
+    def post(self, request):
+        ip = request.data['ip']
+        scan_type = request.data['scan_type']
+        #port_range = request.data['port_range']
+        if scan_type == 'Quick Scan':
+            cmd = f'nmap -T4 -F {ip}'
+        elif scan_type == 'Full Scan':
+            cmd = f'sudo nmap -T4 -A -v {ip}'
+        elif scan_type == 'TCP Syn Scan' or 'Stealth Scan':
+            cmd = f'sudo nmap -sS {ip}'
+        elif scan_type == 'Intense Scan':
+            cmd = f'sudo nmap -T4 -A -v -Pn {ip}'
+        elif scan_type == 'Intense Scan with UDP':
+            cmd = f'sudo nmap -sS -sU -T4 -A -v {ip}'
+        elif scan_type == 'Top-Ports':
+            cmd = f'sudo nmap -T4 -A -v --top-ports 100 {ip}'
+        elif scan_type == 'Version':
+            cmd = f'sudo nmap -sV -T4 -O -F --version-light {ip}'
+        elif scan_type == 'OS-Detection':
+            cmd = f'sudo nmap -O {ip}'
+        elif scan_type == 'ping-scan':
+            cmd = f'sudo nmap -sn {ip}'
+        else:
+            return Response({'error': f'Scan type "{scan_type}" not supported.'}, status=400)
+
+        start_time = time.time()
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        elapsed_time = time.time() - start_time
+
+        if result.returncode == 0:
+            output = result.stdout
+            return Response(output)
+        else:
+            output = result.stderr
+            return Response("Scan Error")
+
+>>>>>>> 2157152 (update middleware code):api/views.py
