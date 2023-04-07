@@ -4,14 +4,15 @@ from rest_framework.response import Response
 import subprocess
 import re
 import time
+from tabulate import tabulate
 
 # Create your views here
 class NmapScanView(APIView):
-    def get(self, request):
-        return render(request, 'index.html')
+    #def get(self, request):
+        #return render(request, 'index.html')
 
     def post(self, request):
-        ip = request.data['ip_address']
+        ip = request.data['ip']
         scan_type = request.data['scan_type']
         print("API hit :"+ip+"  "+scan_type)
 
@@ -37,15 +38,14 @@ class NmapScanView(APIView):
         else:
             return Response({'error': f'Scan type "{scan_type}" not supported.'}, status=400)
 
-        start_time = time.time()
-
         #execute the command in linux kernel using subprocess module
         result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-        elapsed_time = time.time() - start_time
+        output = result.stdout
 
+        # Format output as JSON
         if result.returncode == 0:
             output = result.stdout
-            print("Result--"+str(output))
-            return render(request, 'index.html', {'output': output})
+            output_list = output.split('\n')
+            return Response(output_list)
         else:
-            return Response({'error': 'An error occurred while scanning.'}, status=500)
+            return Response({'error': 'An error occurred while scanning.'}, status=400)
