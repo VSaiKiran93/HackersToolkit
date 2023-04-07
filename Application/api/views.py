@@ -7,8 +7,8 @@ import time
 
 # Create your views here
 class NmapScanView(APIView):
-    def get(self, request):
-        return render(request, 'index.html')
+    #def get(self, request):
+        #return render(request, 'index.html')
 
     def post(self, request):
         ip = request.data['ip_address']
@@ -46,6 +46,6 @@ class NmapScanView(APIView):
         if result.returncode == 0:
             output = result.stdout
             print("Result--"+str(output))
-            return render(request, 'index.html', {'output': output})
+            return Response(output)
         else:
             return Response({'error': 'An error occurred while scanning.'}, status=500)

@@ -4,6 +4,6 @@ from django.views.generic.base import RedirectView
 from .views import NmapScanView
 
 urlpatterns =[
-     path('nmap-scan/', NmapScanView.as_view(), name='nmap'),
+     path('', NmapScanView.as_view(), name='nmap'),
 ]
 
