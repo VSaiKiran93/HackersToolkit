@@ -1,14 +1,14 @@
-#from django.shortcuts import render
+from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 import subprocess
 import re
 import time
 
-#Create your views here
+# Create your views here
 class NmapScanView(APIView):
-    #def get(self, request):
-        #return render(request, 'index.html')
+    def get(self, request):
+        return render(request, 'index.html')
 
     def post(self, request):
         ip = request.data['ip_address']
@@ -42,14 +42,10 @@ class NmapScanView(APIView):
         #execute the command in linux kernel using subprocess module
         result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
         elapsed_time = time.time() - start_time
-        print("Result--"+ str(result))
+
         if result.returncode == 0:
             output = result.stdout
-            #print("Result--"+str(output))
-            #return render(request, 'index.html', {'output': output})
+            print("Result--"+str(output))
+            return render(request, 'index.html', {'output': output})
         else:
-            output = result.stderr
-            #return render(request, 'index.html', {'output':output})
-        print("output--"+str(output))
-
-        return Response({'scan_type': scan_type, 'scan_results': output})
+            return Response({'error': 'An error occurred while scanning.'}, status=500)
