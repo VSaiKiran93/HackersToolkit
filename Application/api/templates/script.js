@@ -1,29 +1,32 @@
 $(document).ready(function() {
-  $('#nmap-form').submit(function(event) {
+  $('#scan-form').submit(function(event) {
     event.preventDefault();
-
+    console.log("sdfdfsdfdsfdsdfsfsdfsdfsddfs")
     // Get input values
     var formData = {
-	'ip_address': $('#ip-address').val(),
-	'port_range': $('#port-range').val(),
+	'ip_address': $('#input-text').val(),
 	'scan_type': $('#scan-type').val(),
     }
 
 
-    // send AJAX request to API endpoint
-    $.ajax({
-      type: 'POST',
-      url: 'http://127.0.0.1:8000/',
-      data: JSON.stringify(formData),
-      contentType: 'application/json',
-      success: function(data) {
-        // Display scan results in container element
-        $console.log('Scan-results:', data);
-        $('#scan-result').html(data);
-      },
-      error: function(xhr, status, error) {
-        alert('Error retrieving scan results.');
-      }
-    });
+    fetch("http://192.168.0.141:8000/nmap-scan/", {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+                })
+                
+                .then(response => response.json())
+                .then(response => {
+
+                  console.log("testdcfdsfdvf"+response)
+                    $("#output-text").val(JSON.stringify(response));
+                
+                 })
+
+    
+
   });
 });

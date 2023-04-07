@@ -51,20 +51,16 @@
     <div class="row">
         <form id="scan-form">
             <input type="text" id="input-text" placeholder="IP address">
-            <input type="text" id="port-range" placeholder="Port range">
             <select name="scan_type" id="scan-type">
-                <option value="">Regular scan</option>
-                <option value="T4 -F">Quick Scan</option>
-                <option value="-sV -T4 -O -F --version-light">Quick scan plus</option>
-                <option value="sS">SYN Stealth Scan</option>
-                <option value="-A -v">Intense Scan</option>
-                <option value="-sS -sU -T4 -A -v">Intense with UDP Scan</option>
-                <option value="-p 1-65535 -T4 -A -v">Intense scan, all TCP ports</option>
-                <option value="-T4 -A -v -Pn">Intense scan, no ping</option>
-                <option value="sn">Ping Scan</option>
-                <option value="-sn --traceroute">Quick traceroute</option>
-                <option value="-sS -sU -T4 -A -v -PE -PS80,443 -PA3389 -PP -PU40125 -PY">Slow comprehensive scan</option>
-                <option value="T4 -F">Quick Scan</option>
+                <option value="Quick Scan">Quick Scan</option>
+                <option value="Full Scan">Full Scan</option>
+                <option value="TCP Syn Scan">TCP Syn Scan/Stealth Scan</option>
+                <option value="Intense Scan">Intense Scan</option>
+                <option value="Intense Scan with UDP">Intense with UDP Scan</option>
+                <option value="Top-Ports">Top-Ports</option>
+                <option value="Version">Version Scan</option>
+                <option value="OS-Detection">OS-Detection</option>
+                <option value="ping-scan">Ping Scan</option>
             </select>
             <!-- <input type="submit" id="submit-button" value="Submit"> -->
             <button id="submit-button">Scan</button>
