@@ -1,4 +1,4 @@
-#!/home/kiran/Desktop/Django-Project/Project/v-env/bin/python3
+#!/home/kiran/Desktop/Django-Project/Project/Application/v-env/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
