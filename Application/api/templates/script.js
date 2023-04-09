@@ -6,7 +6,7 @@ $(document).ready(function() {
     var scannerType = $("input[name='radio']:checked").val();
     $.ajax({
       type: "POST",
-      url: "/nmap-scan/post",
+      url: "http://74.235.154.69:8000/",
       data: JSON.stringify({
         ipAddress: ipAddress,
         scanType: scanType,
