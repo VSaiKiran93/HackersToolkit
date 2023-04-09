@@ -1,14 +1,17 @@
 from django.shortcuts import render
+from django.views.generic import TemplateView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 import subprocess
 import re
 import time
-from tabulate import tabulate
+#from tabulate import tabulate
 
 # Create your views here
-class NmapScanView(APIView):
+class NmapScanView(TemplateView):
+    template_name = 'index.html'
     #def get(self, request):
+    
         #return render(request, 'index.html')
 
     def post(self, request):
@@ -46,6 +49,8 @@ class NmapScanView(APIView):
         if result.returncode == 0:
             output = result.stdout
             output_list = output.split('\n')
-            return Response(output_list)
         else:
-            return Response({'error': 'An error occurred while scanning.'}, status=400)
+            output_list = ['An error occurred while scanning.']
+            
+        return render(request, self.template_name, {'output_list': output_list})
+
