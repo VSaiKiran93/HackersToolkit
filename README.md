@@ -3,8 +3,7 @@
 Step-1: Install Kali linux in the Azure VM.
 
 Step-2: clone the project using 
-        git clone 
-
+        git clone https://github.com/VSaiKiran93/HackersToolkit.git
 
 Step-3: Run the below commands,
         sudo apt-get update
