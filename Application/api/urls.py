@@ -4,6 +4,6 @@ from .views import NmapScanView
 
 urlpatterns =[
      #path('', index, name='index'),
-     path('', NmapScanView.as_view(), name='nmap'),
+     path('nmap-scan/', NmapScanView.as_view(), name='nmap'),
 ]
 

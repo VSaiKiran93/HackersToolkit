@@ -44,8 +44,7 @@
   </div>
   <div class="item3">
     <div class="row">
-        <form action="" id="loginForm">
-            {% csrf_token %}
+        <form  id="loginForm">
             <input type="text" id="input-text" placeholder="IP address">
             <select name="scan_type" id="scan-type">
                 <option value="Quick Scan">Quick Scan</option>
@@ -59,7 +58,7 @@
                 <option value="ping-scan">Ping Scan</option>
             </select>
             <!-- <input type="submit" id="submit-button" value="Submit"> -->
-            <button type="submit" id="submit-button">Scan</button>
+            <button type="button" id="submit-button" onclick="userAction()">Scan</button>
             
         </form>
     </div>

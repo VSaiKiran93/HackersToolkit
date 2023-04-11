@@ -1,38 +1,23 @@
 from django.shortcuts import render
-<<<<<<< HEAD
 from django.views.generic import TemplateView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 import subprocess
-import re
-import time
-#from tabulate import tabulate
+from django.http import HttpResponse
+from django.template import loader
+
 
 # Create your views here
 class NmapScanView(TemplateView):
     template_name = 'index.html'
-    #def get(self, request):
-    
-        #return render(request, 'index.html')
-=======
-from django.http import HttpResponse
-from django.template import loader
-from django.views.generic import TemplateView
-#from rest_framework.response import Response
-import subprocess
-
-
-# Create your views here
-class NmapScanView(TemplateView):
-    template_name = loader.get_template('index.html')
 
     #def get(self, request):
         #return render(request, self.template_name)
->>>>>>> d3e10e4 (middleware code changes)
 
     def post(self, request):
-        ip = request.data['ip']
-        scan_type = request.data['scan_type']
+        print("payload....",request)
+        ip = request.ip
+        scan_type = request.scan_type
         print("API hit :"+ip+"  "+scan_type)
 
         #choose the scan type
@@ -67,11 +52,8 @@ class NmapScanView(TemplateView):
             output_list = output.split('\n')
         else:
             output_list = ['An error occurred while scanning.']
-<<<<<<< HEAD
-            
-        return render(request, self.template_name, {'output_list': output_list})
 
-=======
+        template = loader.get_template(self.template_nmae)
+        context = {'output_list': output_list} 
+        return HttpResponse(template.render(context, request))
 
-        return render(request, self.template_name, {'output_list': output_list})
->>>>>>> d3e10e4 (middleware code changes)
