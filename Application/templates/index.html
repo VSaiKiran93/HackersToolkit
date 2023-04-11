@@ -1,9 +1,8 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
    <meta charset="UTF-8">
-   <title> Nmap Scan</title?
+   <title> Nmap Scan</title>
 <style>
 .item1 { grid-area: header; }
 .item2 { grid-area: menu; }
@@ -23,8 +22,6 @@
 }
 
 </style>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
 <body>
 <h1 style="text-align: center;">Hackers Tool Kit </h1>
@@ -47,7 +44,7 @@
   </div>
   <div class="item3">
     <div class="row">
-        <form method="POST" action="{% url 'nmap' %}">
+        <form action="" id="loginForm">
             {% csrf_token %}
             <input type="text" id="input-text" placeholder="IP address">
             <select name="scan_type" id="scan-type">
@@ -63,7 +60,7 @@
             </select>
             <!-- <input type="submit" id="submit-button" value="Submit"> -->
             <button type="submit" id="submit-button">Scan</button>
-            <script type="text/javascript" src="{% static 'static/script.js' %}"></script>
+            
         </form>
     </div>
   </div>
@@ -80,5 +77,8 @@
   </div>
 </div>
 </body>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script type="application/javascript" src="../static/script.js"></script>
 </html>
 
