@@ -1,5 +1,6 @@
 from django.views.generic import TemplateView
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 import subprocess
 import requests
@@ -24,11 +25,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here
 class NmapScanView(APIView):
-    #template_name = 'index.html'
-    #def get(self, request):
 
-        #return render(request, 'index.html')
-    VULNERS_API_KEY = 'FSEH2XXM92N7FZ67A4AZ64B4D31ZIT53C1ZA8CE64RPLFG6MSX1O630Z1F0B6COR'
     def post(self, request):
         ip = request.data['ip']
         scan_type = request.data['scan_type']
@@ -66,33 +63,92 @@ class NmapScanView(APIView):
         else:
             output = ['An error occurred while scanning']
 
-        vulnerabilities = self.nmap_vuln_scan(ip)
-        return Response({'output': output, 'vulnerabilities': vulnerabilities})
+        vulnerabilities = self.vulners_scan(ip)
+        data = {"output": output, "vulnerabilities": vulnerabilities}
+        return Response(data)
 
-    def nmap_vuln_scan(self, ip):
-        nmap_command = f'nmap -sV --script vulners {ip}'
-        output = subprocess.check_output(nmap_command.split())
-        # parse the Nmap output to extract the vulnerabilities
-        vulnerabilities = []
-        for line in output.splitlines():
-            if b'CVE' in line:
-                vulnerabilities.append(line.decode())
-        # pass the vulnerabilities to the Vulners API
-        vulners_data = []
-        for vulnerability in vulnerabilities:
-            query = f'https://vulners.com/api/v3/search/published/?query={vulnerability}&apiKey={VULNERS_API_KEY}'
-            response = requests.get(query)
-            if response.status_code == 200:
-                data = response.json()
-                if data.get('data'):
-                    for item in data['data']:
-                        if item.get('description'):
-                            vulners_data.append(item['description'])
-                else:
-                    vulners_data.append('No vulnerabilities found.')
-            else:
-                vulners_data.append('An error occured while scanning.')
-        return vulners_data
+
+    def vulners_scan(self, ip):
+
+        VULNERS_API_URL = "https://vulners.com/api/v3/search/lucene/"
+        #Set the API parameters
+        params = {
+            "query": f"host:{ip} AND type: osvdb OR type: cve",
+            "soirt": "cvss.score"
+        }
+
+        headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+        }
+        api_key = "FSEH2XXM92N7FZ67A4AZ64B4D31ZIT53C1ZA8CE64RPLFG6MSX1O630Z1F0B6COR" # Replace with your Vulners API key
+        headers["X-Vulners-API-Key"] = api_key
+
+        # Send the request to Vulners API
+        response = requests.get(VULNERS_API_URL, headers=headers, params=params)
+
+        # Parse the response and extract the vulnerability details
+        if response.status_code == 200:
+            data = response.json().get("data", {})
+            vulnerabilities = []
+            for item in data:
+                vuln = {
+                    "type": item.get("type"),
+                    "id": item.get("id"),
+                    "title": item.get("title"),
+                    "description": item.get("description"),
+                    "cvss": item.get("cvss", {}).get("score"),
+                    "references": item.get("references"),
+                    "published": item.get("published"),
+                    "modified": item.get("modified"),
+                    "software": item.get("software"),
+                    "bulletinFamily": item.get("bulletinFamily"),
+                }
+                vulnerabilities.append(vuln)
+            return vulnerabilities
+
+        else:
+            error_message = f"Failed to fetch vulnerabilities for IP {ip}. Status code: {response.status_code}"
+            return error_message
+
+    #def scan(request):
+        #ip_address = request.GET.get("ip")
+        #if ip_address:
+            #vulnerabilities = vulners_scan(ip_address)
+            #if vulnerabilities:
+                #return JsonResponse({"success": True, "vulnerabilities": vulnerabilities})
+            #else:
+                #return JsonResponse({"success": False, "message": "No vulnerabilities found"})
+        #else:
+            #return JsonResponse({"success": False, "message": "IP address not specified"})
+
+@api_view(['POST'])
+def nikto_scan(request):
+    if request.method == 'POST':
+        ip = request.GET.get('ip')
+        port_range = request.GET.get('port_range')
+
+        # build the nikto command
+        cmd = f'nikto -h {ip} -port {port_range}'
+
+        # execute the command and capture output
+        try:
+            result = subprocess.check_output(cmd, stderr=subprocess.STDOUT, timeout=60)
+            output = result.decode('utf-8')
+        except subprocess.CalledProcessError as e:
+            output = e.output.decode('utf-8')
+        except subprocess.TimeoutExpired:
+            output = 'Nikto scan timed out after 60 seconds'
+
+        # return the output as a JSON response
+        return JsonResponse({'output': output})
+
+
+
+
+
+
+
+
 
 
 
@@ -160,7 +216,7 @@ def start_task(gmp, task_id):
     id = root[0].text
     return id
 
-def get_report(request, gmp, task_id)
+def get_report(request, gmp, task_id):
     xml_response = gmp.start_task(task_id)
     root = et.fromstring(xml_response)
     print(xml_response)
