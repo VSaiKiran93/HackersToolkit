@@ -2,26 +2,30 @@ from django.views.generic import TemplateView
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-import subprocess
-import requests
-import re
-import sys
-from gvm.connections import UnixSocketConnection
-from gvm.errors import GvmError
-from gvm.protocols.gmpv224 import Gmp
-from gvm.transforms import EtreeCheckCommandTransform
-from gvm.xml import pretty_print
+#from gvm.connections import UnixSocketConnection
+#from gvm.errors import GvmError
+#from gvm.protocols.gmpv224 import Gmp
+#from gvm.transforms import EtreeCheckCommandTransform
+#from gvm.xml import pretty_print
 from django.http import HttpResponse
 from django.core.handlers.wsgi import WSGIRequest
-from django.views.decorators.http import require_GET
-import xml.etree.ElementTree as et
+#from django.views.decorators.http import require_GET
+#import xml.etree.ElementTree as et
 import datetime
-from base64 import b64decode
+#from base64 import b64decode
 from pathlib import Path
-from django.http import StreamingHttpResponse
-import io
+#from django.http import StreamingHttpResponse
 from django.views.decorators.csrf import csrf_exempt
-
+import time
+import subprocess
+import requests
+import sys
+import io 
+import re
+from gvm.connections import UnixSocketConnection
+from gvm.protocols.gmp import Gmp
+from gvm.transforms import *
+from gvm.xml import pretty_print 
 
 # Create your views here
 class NmapScanView(APIView):
@@ -110,49 +114,54 @@ class NmapScanView(APIView):
             error_message = f"Failed to fetch vulnerabilities for IP {ip}. Status code: {response.status_code}"
             return error_message
 
-    #def scan(request):
-        #ip_address = request.GET.get("ip")
-        #if ip_address:
-            #vulnerabilities = vulners_scan(ip_address)
-            #if vulnerabilities:
-                #return JsonResponse({"success": True, "vulnerabilities": vulnerabilities})
-            #else:
-                #return JsonResponse({"success": False, "message": "No vulnerabilities found"})
-        #else:
-            #return JsonResponse({"success": False, "message": "IP address not specified"})
+## OpenVAS API execution ##
+def connect_to_gmp(request):
+    path = 'var/run/gvmd/gvmd.sock'
+    connection = UnixSocketConnection(path)
+    connection.connect()
+    gmp = Gmp(connection)
+    gmp.authenticate('admin', 'a0c1f76a-7dbe-4a9b-a60a-12e691c197c0')
+    return gmp
 
-@api_view(['POST'])
-def nikto_scan(request):
-    if request.method == 'POST':
-        ip = request.GET.get('ip')
-        port_range = request.GET.get('port_range')
+def create_scan_task(request, gmp, target):
+    task_id = gmp.create_task(name='My Scan', comment='Full and fast scan', target=target)
+    task = gmp.get_task(task_id)
+    task.set_config(name='Alive Test', value='ICMP ping')
+    task.set_config(name='Full and fast', value='yes')
+    task.apply_preferences('admin')
+    return task_id
 
-        # build the nikto command
-        cmd = f'nikto -h {ip} -port {port_range}'
+def launch_scan_task(request, gmp, task_id):
+    gmp.start_task(task_id)
+    while True:
+        task = gmp.get_task(task_id)
+        status = task.get_status()
+        if status != 'Running':
+            break
+        time.sleep(10)
 
-        # execute the command and capture output
-        try:
-            result = subprocess.check_output(cmd, stderr=subprocess.STDOUT, timeout=60)
-            output = result.decode('utf-8')
-        except subprocess.CalledProcessError as e:
-            output = e.output.decode('utf-8')
-        except subprocess.TimeoutExpired:
-            output = 'Nikto scan timed out after 60 seconds'
+def retrieve_scan_results(request, gmp, task_id, output_format):
+    scan_report = gmp.get_report(task_id)
+    if output_format == 'json':
+        scan_results = xml2json(scan_report)
+    else:
+        scan_results = pretty_print(scan_report)
+    return scan_results
 
-        # return the output as a JSON response
-        return JsonResponse({'output': output})
+@api_view(['GET', 'POST'])
+def scan_view(request):
+    target = request.GET.get('target')
+    #output_format = request.GET.get('output_format', 'xml')
 
+    gmp = connect_to_gmp(request)
+    task_id = create_scan_task(request, gmp, target)
+    launch_scan_task(request, gmp, task_id)
+    scan_results = retrieve_scan_results(request, gmp, task_id, output_format)
 
-
-
-
-
-
-
-
-
+    return Response(scan_results)
 
 #OpenVAS :
+"""
 path = '/run/gvmd/gvmd.sock'
 ip = ''
 
@@ -266,3 +275,4 @@ def call_create_task(request, ipaddress, target_id):
             return Response({"response": task_id})
     except ConnectionError as e:
         return Response({'error': str(e)})
+"""
