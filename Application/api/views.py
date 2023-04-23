@@ -4,7 +4,10 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 import subprocess
 import requests
+from zapv2 import ZAPv2
+from pprint import pprint
 import re
+import time
 import sys
 from gvm.connections import UnixSocketConnection
 from gvm.errors import GvmError
@@ -21,7 +24,7 @@ from pathlib import Path
 from django.http import StreamingHttpResponse
 import io
 from django.views.decorators.csrf import csrf_exempt
-
+import shodan
 
 # Create your views here
 class NmapScanView(APIView):
@@ -63,18 +66,19 @@ class NmapScanView(APIView):
         else:
             output = ['An error occurred while scanning']
 
-        vulnerabilities = self.vulners_scan(ip)
+        #vulnerabilities = self.vulners_scan(ip)
+        vulnerabilities = self.shodan_vuln_scan(ip)
         data = {"output": output, "vulnerabilities": vulnerabilities}
         return Response(data)
 
 
     def vulners_scan(self, ip):
 
-        VULNERS_API_URL = "https://vulners.com/api/v3/search/lucene/"
+        VULNERS_API_URL = "https://vulners.com/linux-scanner/apiscan"
         #Set the API parameters
         params = {
             "query": f"host:{ip} AND type: osvdb OR type: cve",
-            "soirt": "cvss.score"
+            "sort": "cvss.score"
         }
 
         headers = {
@@ -110,16 +114,238 @@ class NmapScanView(APIView):
             error_message = f"Failed to fetch vulnerabilities for IP {ip}. Status code: {response.status_code}"
             return error_message
 
-    #def scan(request):
-        #ip_address = request.GET.get("ip")
-        #if ip_address:
-            #vulnerabilities = vulners_scan(ip_address)
-            #if vulnerabilities:
-                #return JsonResponse({"success": True, "vulnerabilities": vulnerabilities})
-            #else:
-                #return JsonResponse({"success": False, "message": "No vulnerabilities found"})
-        #else:
-            #return JsonResponse({"success": False, "message": "IP address not specified"})
+
+@api_view(['POST'])
+def shodan_vuln_scan(request, ip):
+    # Set up the Shodan API client
+    api_key = "uhuBjP31CDHJsSL4sXFuzAGJawlKbeFI"
+    api = shodan.Shodan(api_key)
+    ip 
+
+    try:
+        # Search for vulnerabilities
+        results = api.search(f"vulns:{ip}")
+        print(results)
+        # Get the list of verified vulnerabilities
+        verified_vulns = results.get('facets', {}).get('vuln.verified', [])
+
+        # Loop through the vulnerabilities and extract their details
+        vulnerabilities = []
+        for vuln in results['matches']:
+            # Only include verified vulnerabilities
+            if 'vuln' in vuln and vuln['vuln'].get('verified', False):
+                vulnerability = {
+                    'title': vuln['vuln'].get('title', 'N/A'),
+                    'description': vuln['vuln'].get('description', 'N/A'),
+                    'references': vuln['vuln'].get('references', []),
+                    'cvss': vuln['vuln'].get('cvss', 'N/A'),
+                    'summary': vuln['vuln'].get('summary', 'N/A'),
+                }
+                vulnerabilities.append(vulnerability)
+
+            else:
+                vulnerabilities = f"failed to fetch vulnerabilities for IP {ip}. Status code: {response.status_code}"
+
+        # Return the list of vulnerabilities as a JSON response
+        return Response(vulnerabilities)
+
+    except shodan.APIError as e:
+        print(f"Error: {e}")
+        # Return an error message if the Shodan API call fails
+        return Response({'error': str(e)})
+
+
+## OWASP-ZAP ##
+@api_view(['POST'])
+@csrf_exempt
+def zap_scan(request):
+    apiKey = 'nu5pfsgc1krtnhbfaf41ag'
+    zap = ZAPv2(apikey=apiKey, proxies={'http': 'http://127.0.0.1:8080', 'https': 'http://127.0.0.1:8080'})
+
+    #Define new session name and load session
+    session_name = 'scan_session'
+    zap.core.new_session(name=session_name)
+    zap.core.load_session(name=session_name)
+    time.sleep(5)
+
+    loaded_session_name = zap.session.current_session
+    print(f"Loaded session: {loaded_session_name}")
+
+    if request.method == 'POST':
+        ip = request.data['ip']
+        print(ip)
+        target = f'http://{ip}'
+
+        #Proxy a request to the target so that ZAP has something to deal with
+        print('Acessing target {}'.format(target))
+        zap.urlopen(target)
+        time.sleep(2)
+
+        # Spider the target to build up the application structure
+        print('Spidering target {}'.format(target))
+        scanID = zap.spider.scan(target)
+        time.sleep(2)
+
+        while (int(zap.spider.status(scanID)) < 100):
+            # Loop until the spider has finished
+            print('Spider progress %: {}'.format(zap.spider.status(scanID)))
+            time.sleep(5)
+
+        print('Spider completed')
+
+
+        while (int(zap.pscan.records_to_scan) > 0):
+            print('Records to passic scan : {}'.format(zap.pscan.records_to_scan))
+            time.sleep(2)
+
+        # Wait for passive scanning to complete
+        zap.pscan.wait()
+        print('Passive Scan Completed')
+
+        # Active scan the target
+        print('Active Scanning target {}'.format(target))
+        scanID = zap.ascan.scan(target)
+        while (int(zap.ascan.status(scanID)) < 100):
+            # Loop until the scanner has finished
+            print('Scan progress %: {}'.format(zap.ascan.status(scanID)))
+            time.sleep(5)
+
+        print('Active Scan completed')
+
+        # Retrieve the scan results in JSON format
+        alerts = zap.core.alerts(baseurl=target)
+        results = []
+        for alert in alerts:
+            result = {
+                'name': alert['name'],
+                'risk': alert['risk'],
+                'confidence': alert['confidence'],
+                'description': alert['description']
+            }
+            results.append(result)
+
+        return Response({'scan_results': results})
+    else:
+        return Response({'error': 'Invalid request method'}, status=405)
+
+
+##  OWASP-ZAP ##
+@api_view(['POST'])
+def new_session(request):
+    # Configure OWASP ZAP API settings
+    zap_url = 'http://localhost:8080'
+    zap_api_key = 'nu5pfsgc1krtnhbfaf41ag'
+
+    # Start a new session
+    session_url = f'{zap_url}/JSON/newSession'
+    session_data = {
+        'apikey': zap_api_key,
+        'name': 'django-rest-scan'
+    }
+    session_response = requests.post(session_url, data=session_data)
+
+    return Response({'session_response': session_response.json()})
+
+@api_view(['POST'])
+def spider_url(request):
+    ip_address = request.data['ip_address']
+
+    # Configure OWASP ZAP API settings
+    zap_url = 'http://localhost:8080'
+    zap_api_key = 'nu5pfsgc1krtnhbfaf41ag'
+    target_url = f'http://{ip_address}'
+
+    # Spider the target URL to discover all reachable pages
+    spider_url = f'{zap_url}/JSON/spider/action/scanAsUser'
+    spider_data = {
+        'apikey': zap_api_key,
+        'url': target_url,
+        'maxDuration': 0
+    }
+    spider_response = requests.post(spider_url, data=spider_data)
+
+    return Response({'spider_response': spider_response.json()})
+
+@api_view(['GET'])
+def spider_status(request):
+    # Configure OWASP ZAP API settings
+    zap_url = 'http://localhost:8080'
+    zap_api_key = 'nu5pfsgc1krtnhbfaf41ag'
+
+    # Wait for the spider to finish
+    spider_status_url = f'{zap_url}/JSON/spider/view/status'
+    spider_status_data = {
+        'apikey': zap_api_key
+    }
+    spider_status = '100'
+    while spider_status != 'Stopped':
+        spider_status_response = requests.get(spider_status_url, params=spider_status_data)
+        spider_status = spider_status_response.json()['status']
+
+    return Response({'spider_status': spider_status})
+
+@api_view(['POST'])
+def scan_url(request):
+    ip_address = request.data['ip_address']
+
+    # Configure OWASP ZAP API settings
+    zap_url = 'http://localhost:8080'
+    zap_api_key = 'nu5pfsgc1krtnhbfaf41ag'
+    target_url = f'http://{ip_address}'
+
+    # Scan all discovered pages for vulnerabilities
+    scan_url = f'{zap_url}/JSON/ascan/action/scanAsUser'
+    scan_data = {
+        'apikey': zap_api_key,
+        'url': target_url,
+        'recurse': 'true',
+        'inScopeOnly': 'false'
+    }
+    scan_response = requests.post(scan_url, data=scan_data)
+
+    return Response({'scan_response': scan_response.json()})
+
+@api_view(['GET'])
+def scan_status(request):
+    # Configure OWASP ZAP API settings
+    zap_url = 'http://localhost:8080'
+    zap_api_key = 'nu5pfsgc1krtnhbfaf41ag'
+
+    # Wait for the scan to finish
+    scan_status_url = f'{zap_url}/JSON/ascan/view/status'
+    scan_status_data = {
+        'apikey': zap_api_key
+    }
+    scan_status = '100'
+    while scan_status != 'Completed':
+        scan_status_response = requests.get(scan_status_url, params=scan_status_data)
+        scan_status = scan_status_response.json()['status']
+
+    return Response({'scan_status': scan_status})
+
+@api_view(['POST'])
+def generate_report(request):
+    ip_address = request.data['ip_address']
+
+    # Configure OWASP ZAP API settings
+    zap_url = 'http://localhost:8080'
+    zap_api_key = 'nu5pfsgc1krtnhbfaf41ag'
+    target_url = f'http://{ip_address}'
+
+    # Retrieve the scan results
+    report_url = f'{zap_url}/OTHER/core/other/htmlreport/'
+    report_data = {
+        'apikey': zap_api_key,
+        'baseurl': target_url
+    }
+    report_response = requests.get(report_url, params=report_data)
+    scan_results = report_response.content.decode('utf-8')
+
+    # Return the scan results as a JSON response
+    return Response({'scan_results': scan_results})
+
+
+
 
 @api_view(['POST'])
 def nikto_scan(request):
@@ -144,15 +370,21 @@ def nikto_scan(request):
 
 
 
-
-
-
-
-
-
-
-
 #OpenVAS :
+from gvm.connections import UnixSocketConnection
+from gvm.errors import GvmError
+from gvm.protocols.gmpv224 import Gmp
+from gvm.transforms import EtreeCheckCommandTransform
+from gvm.xml import pretty_print
+from django.http import HttpResponse
+from django.core.handlers.wsgi import WSGIRequest
+from django.views.decorators.http import require_GET
+import xml.etree.ElementTree as et
+import datetime
+from base64 import b64decode
+from pathlib import Path
+
+
 path = '/run/gvmd/gvmd.sock'
 ip = ''
 
