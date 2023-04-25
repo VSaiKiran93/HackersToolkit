@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hacker Tool Kit</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.3/css/bootstrap.min.css">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="script.js"></script>
+</head>
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <h4 class="dashboard">Dashboard</h4>
+      <p class="lead text-center">Scanners</p>
+        <div class="radio-container d-flex justify-content-center mb-4">
+          <div class="form-check me-4">
+            <input class="form-check-input" type="radio" checked name="radio" value="nmap" id="nmap">
+            <label class="form-check-label" for="nmap">Nmap</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="radio" value="Nikto" id="Nikto">
+            <label class="form-check-label" for="Nikto">Openvas</label>
+          </div>
+        </div>
+    </div>
+  </div>
+  <div class="container">
+    <h1 class="text-center mb-4">Hackers Tool Kit</h1>
+    <!--p class="lead text-center">Enter the required input parameters to scan the target</p>-->
+    <div class="item3">
+      <div class="form-container">
+        <form id="scan-form">
+          <div class="form-group">
+            <label for="ip-address">IP address</label>
+            <input type="text" id="ip-address" placeholder="Enter IP address">
+          </div>
+          <div class="form-group">
+          <div id="scantypeId">
+            <label for="scan-type">Scan type</label>
+            <select name="scan_type" id="scan-type">
+              <option value="Quick Scan">Quick Scan</option>
+              <option value="Full Scan">Full Scan</option>
+              <option value="Stealth Scan">Stealth Scan</option>
+              <option value="Intense Scan">Intense Scan</option>
+              <option value="Intense Scan with UDP">Intense Scan with UDP</option>
+              <option value="Top-Ports">Top Ports</option>
+              <option value="Version">Version</option>
+              <option value="OS-Detection">OS Detection</option>
+              <option value="ping-scan">Ping Scan</option>
+            </select>
+          </div>
+          </div>
+          <div class="form-group">
+            <button type="submit" id="submit-button">Scan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    
+
+    <div class="result mt-5">
+      <div class="label">
+        <label class="form-label" for="output-text">Result:</label>
+      </div>
+      <div class="textarea">
+        <textarea class="form-control" id="output-text" rows="10" cols="60"></textarea>
+      </div>
+    </div>
+</div>
+</body>
+</html>
