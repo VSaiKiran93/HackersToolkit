@@ -112,7 +112,6 @@ def start_task(gmp, task_id):
     return id
 
 
-#gmp = Gmp(connection=UnixSocketConnection(path='/run/gvmd/gvmd.sock'))
 with Gmp(connection=connection) as gmp:
 
     def authenticate():
@@ -135,7 +134,7 @@ with Gmp(connection=connection) as gmp:
     def call_create_target(request, ipaddress):
         authenticate()
         target_id = create_target(gmp, ipaddress, port_list_id='4a4717fe-57d2-11e1-9a26-406186ea4fc5')
-        return HttpResponse({"response" : {target_id}})
+        return HttpResponse(target_id)
 
     @require_http_methods(["GET"])
     @csrf_exempt
@@ -144,33 +143,25 @@ with Gmp(connection=connection) as gmp:
         full_and_fast_scan_config_id = "daba56c8-73ec-11df-a475-002264764cea"
         openvas_scanner_id = "08b69003-5fc2-4037-a479-93b440211c73"
         task_id = create_task(gmp, ipaddress, target_id, full_and_fast_scan_config_id, openvas_scanner_id)
-        return HttpResponse({"response" : {task_id}})
+        return HttpResponse(task_id)
 
     @require_http_methods(["GET"])
     @csrf_exempt
     def call_start_scan(request, task_id):
         authenticate()
         report_id = start_task(gmp, task_id)
-        return HttpResponse({"response" : {report_id}})
+        return HttpResponse(report_id)
 
     @require_http_methods(["GET"])
     @csrf_exempt
-    def get_report(request, report_id, filename):
+    def get_report(report_id):
         authenticate()
-        pdf_report_format_id = "c402cc3e-b531-11e1-9163-406186ea4fc5"
-        xml_response = gmp.get_report(report_id=report_id, report_format_id=pdf_report_format_id)
-        response = et.fromstring(xml_response)
-        report_element = response[0]
-        # get the full content of the report element
-        content = report_element.find("report_format").tail
-        binary_base64_encoded_pdf = content.encode('ascii')
-        # decode base4
-        binary_pdf = b64decode(binary_base64_encoded_pdf)
-        pdf_path = Path(filename).expanduser()
-        pdf_path.write_bytes(binary_pdf)
-        print(binary_base64_encoded_pdf)
-        return FileResponse("/django/report.pdf")
-
+        json_report_format_id = "c1645568-627a-4d4a-8c1f-5633a7c1f4db"
+        json_response = gmp.get_report(report_id=report_id, report_format_id=json_report_format_id)
+        pretty_json = json.dumps(json.loads(json_response), indent=4)
+        # return the pretty-printed JSON content as an HTTP response with the appropriate content type
+        response = HttpResponse(pretty_json, content_type='application/json')
+        return response
 
 
 class NmapScanView(APIView):
