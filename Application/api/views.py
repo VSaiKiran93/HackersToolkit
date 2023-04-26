@@ -7,9 +7,7 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.core.handlers.wsgi import WSGIRequest
 from django.conf import settings
-import xml.etree.ElementTree as et
 import datetime
-from base64 import b64decode
 from pathlib import Path
 import time
 import subprocess
@@ -25,9 +23,11 @@ from gvm.xml import pretty_print
 import xml.etree.ElementTree as ET
 
 # Create your views here
-path = '/run/gvmd/gvmd.sock'
+#path = '/run/gvmd/gvmd.sock'
 
-connection = UnixSocketConnection(path=path)
+#connection = UnixSocketConnection(path=path)
+connection = SSHConnection(hostname= 'localhost', port=2222, username='azureuser', password=None )
+gmp = Gmp(connection)
 
 def clean_sensor(gmp: Gmp) -> None:
     tasks = gmp.get_tasks(
