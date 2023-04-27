@@ -8,7 +8,7 @@ urlpatterns =[
      path('', NmapScanView.as_view(), name='nmap'),
      path('create-target/<str:ipaddress>/', views.call_create_target, name='ipaddress'),
      path('create-task/<str:ipaddress>/<str:target_id>/', views.call_create_task, name='task'),
-     path('start-scan/', views.call_start_scan, name='scan'),
-     path('get-report/', views.get_report, name='report'),
+     path('start-scan/<str:task_id>/', views.call_start_scan, name='scan'),
+     path('get-report/<str:report_id>/', views.get_report, name='report'),
 ]
 
