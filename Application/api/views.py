@@ -20,7 +20,8 @@ import json
 from gvm.connections import UnixSocketConnection
 from gvm.protocols.gmp import Gmp
 from gvm.transforms import *
-from gvm.xml import pretty_print 
+from gvmtools.helper import pretty_print as pretty
+from gvm.xml import pretty_print
 import xml.etree.ElementTree as ET
 
 # Create your views here
@@ -163,16 +164,12 @@ with Gmp(connection=connection) as gmp:
     @csrf_exempt
     def get_report(request, report_id):
         authenticate()
-        plain_report_format_id = "a994b278-1f62-11e1-96ac-406186ea4fc5"
+        csv_report_format_id = "77bd6c4a-1f62-11e1-abf0-406186ea4fc5"
         print("report call")
-        plain_response = gmp.get_report(report_id=report_id, report_format_id=plain_report_format_id)
+        csv_response = gmp.get_report(report_id=report_id, report_format_id=csv_report_format_id)
 
-        response_dict = {}
-        for line in plain_response.split('\n'):
-            key, value = line.split('=')
-            response_dict[key.strip()] = value.strip()
-
-        response = HttpResponse(json.dumps(response_dict, indent=4), content_type='application/json')
+        result = {"Scan Report": csv_response}
+        response = HttpResponse(json.dumps(result), content_type='application/json')
         return response
 
 
