@@ -17,12 +17,16 @@ import io
 import re
 import gvm
 import json
+from base64 import b64decode
 from gvm.connections import UnixSocketConnection
 from gvm.protocols.gmp import Gmp
 from gvm.transforms import *
 from gvmtools.helper import pretty_print as pretty
 from gvm.xml import pretty_print
 import xml.etree.ElementTree as ET
+import xmltodict
+import xml.dom.minidom as minidom
+#from openvas_to_report.api import Config, convert, crop
 
 # Create your views here
 path = '/run/gvmd/gvmd.sock'
@@ -164,12 +168,20 @@ with Gmp(connection=connection) as gmp:
     @csrf_exempt
     def get_report(request, report_id):
         authenticate()
-        csv_report_format_id = "77bd6c4a-1f62-11e1-abf0-406186ea4fc5"
+        pdf_report_format_id = 'a3810a62-1f62-11e1-9219-406186ea4fc5'
         print("report call")
-        csv_response = gmp.get_report(report_id=report_id, report_format_id=csv_report_format_id)
-
-        result = {"Scan Report": csv_response}
-        response = HttpResponse(json.dumps(result), content_type='application/json')
+        xml_response = gmp.get_report(report_id=report_id, report_format_id=pdf_report_format_id)
+        root = ET.fromstring(xml_response)
+        report_element = root[0]
+        report = root[1]
+        #get the  full content of report element
+        content = report_element.find("report_format").tail
+        binary_base64_plain =  content.encode('ascii')
+        binary_plain = b64decode(binary_base64_plain)
+        json_response = binary_plain.decode('utf-8')
+        print(json_response)
+        response = HttpResponse(json_response, content_type='applicationn/json')
+        print(response)
         return response
 
 
@@ -213,8 +225,8 @@ class NmapScanView(APIView):
         else:
             output = ['An error occurred while scanning']
 
-        data = {"output": output}
-        return Response(data)
+        #data = {"output": output}
+        return Response(output_list)
 
 
 
