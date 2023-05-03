@@ -26,7 +26,6 @@ from gvm.xml import pretty_print
 import xml.etree.ElementTree as ET
 import xmltodict
 import xml.dom.minidom as minidom
-#from openvas_to_report.api import Config, convert, crop
 
 # Create your views here
 path = '/run/gvmd/gvmd.sock'
@@ -168,19 +167,18 @@ with Gmp(connection=connection) as gmp:
     @csrf_exempt
     def get_report(request, report_id):
         authenticate()
-        pdf_report_format_id = 'a3810a62-1f62-11e1-9219-406186ea4fc5'
+        plain_report_format_id = 'a3810a62-1f62-11e1-9219-406186ea4fc5'
         print("report call")
-        xml_response = gmp.get_report(report_id=report_id, report_format_id=pdf_report_format_id)
+        xml_response = gmp.get_report(report_id=report_id, report_format_id=plain_report_format_id)
         root = ET.fromstring(xml_response)
         report_element = root[0]
-        report = root[1]
         #get the  full content of report element
         content = report_element.find("report_format").tail
         binary_base64_plain =  content.encode('ascii')
         binary_plain = b64decode(binary_base64_plain)
         json_response = binary_plain.decode('utf-8')
         print(json_response)
-        response = HttpResponse(json_response, content_type='applicationn/json')
+        response = HttpResponse(json_response, content_type='text/html')
         print(response)
         return response
 
