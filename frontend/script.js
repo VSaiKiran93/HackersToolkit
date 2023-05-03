@@ -26,7 +26,7 @@ $(document).ready(function() {
         'ip': $('#ip-address').val(),
         'scan_type': $('#scan-type').val(),
           }
-          url="http://127.0.0.1:8000/";
+          url="http://192.168.0.149:8000/";
           method_type = 'POST';
     $("#output-text").val("");        
     fetch(url, {
@@ -49,7 +49,7 @@ $(document).ready(function() {
 });
 function createTarget(){
     let ip_address= $('#ip-address').val(),
-      url='http://127.0.0.1:8000/create-target/'+ip_address+"/";
+      url='http://192.168.0.149:8000/create-target/'+ip_address+"/";
       method_type = 'GET';
       $("#output-text").val("");               
     fetch(url, {
@@ -68,7 +68,7 @@ function createTarget(){
   })
 }
 function createTask(ip_address,target_id){
-      url='http://127.0.0.1:8000/create-task/'+ip_address+'/'+target_id+'/';
+      url='http://192.168.0.149:8000/create-task/'+ip_address+'/'+target_id+'/';
       method_type = 'GET';
       $("#output-text").val("");               
 fetch(url, {
@@ -88,7 +88,7 @@ fetch(url, {
 }
 
 function startTask(taskid){
-      url='http://127.0.0.1:8000/start-scan/'+taskid+"/";
+      url='http://192.168.0.149:8000/start-scan/'+taskid+"/";
       method_type = 'GET';
       $("#output-text").val("");               
 fetch(url, {
@@ -108,7 +108,7 @@ fetch(url, {
 }
 
 function getReport(reportid){
-      url='http://127.0.0.1:8000/get-report/'+reportid+"/";
+      url='http://192.168.0.149:8000/get-report/'+reportid+"/";
       method_type = 'GET';
       $("#output-text").val("");               
 fetch(url, {
@@ -118,11 +118,20 @@ fetch(url, {
       'Content-Type': 'application/json'
   },
 } )
-.then(response => response?.json())
-.then(response => {
-    console.log("get response data"+response)
-    $("#output-text").val(JSON.stringify(response));
+.then(response => response.blob())
 
- })
+  .then(blob => {
+      const reader = new FileReader();
+      reader.readAsArrayBuffer(blob);
+      reader.onloadend = () => {
+       const arrayBuffer = reader.result;
+       const decoder = new TextDecoder();
+       const report = decoder.decode(arrayBuffer);
+       //console.log("get response data"+arrayBuffer)
+       console.log(report);
+       $("#output-text").val(report);
+      }
+
+  })
 }
 });
