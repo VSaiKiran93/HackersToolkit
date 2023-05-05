@@ -24,8 +24,8 @@ from gvm.transforms import *
 from gvmtools.helper import pretty_print as pretty
 from gvm.xml import pretty_print
 import xml.etree.ElementTree as ET
-import xmltodict
-import xml.dom.minidom as minidom
+import paramiko
+import time
 
 # Create your views here
 path = '/run/gvmd/gvmd.sock'
@@ -211,14 +211,20 @@ class NmapScanView(APIView):
             cmd = f'sudo nmap -sn {ip}'
         else:
             return Response({'error': f'Scan type "{scan_type}" not supported.'}, status=400)
-
-        #execute the command in linux kernel using subprocess module
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-        #output = result.stdout
+        
+        # SSH connection part
+        ssh= paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        pkey = paramiko.RSAKey.from_private_key_file("/root/.ssh/id_rsa")
+        ssh.connect(hostname="20.55.192.74",username="root",pkey=pkey, look_for_keys=False, allow_agent=False)
+        stdin, stdout, stderr = ssh.exec_command(cmd)
+        result=stdout.read().decode()
+        ssh.close()
+        print("Results"+result)
 
         # Format output as JSON
         if result.returncode == 0:
-            output = result.stdout
+            output = result
             output_list = output.split('\n')
         else:
             output = ['An error occurred while scanning']
