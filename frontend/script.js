@@ -15,6 +15,9 @@ $(document).ready(function() {
           $('#ip-address').val('');
       }
     });
+    var spinner = new Spinner().spin();
+    var loaderContainer = document.querySelector('#loader-container');
+    //loaderContainer.appendChild(spinner.el);
   $('#scan-form').submit(function(event) {
     event.preventDefault();
     // Get input values
@@ -26,9 +29,10 @@ $(document).ready(function() {
         'ip': $('#ip-address').val(),
         'scan_type': $('#scan-type').val(),
           }
-          url="http://192.168.0.149:8000/";
+          url="http://20.51.254.106:8000/";
           method_type = 'POST';
-    $("#output-text").val("");        
+    $("#output-text").val("");   
+    loaderContainer.appendChild(spinner.el);     
     fetch(url, {
       method: method_type,
       headers: {
@@ -43,15 +47,19 @@ $(document).ready(function() {
         $("#output-text").val(JSON.stringify(response));
     
      })
+     .finally(() => {
+      loaderContainer.removeChild(spinner.el);
+     });
     }else{
       createTarget()
     }
 });
 function createTarget(){
     let ip_address= $('#ip-address').val(),
-      url='http://192.168.0.149:8000/create-target/'+ip_address+"/";
+      url='http://20.51.254.106:8000/create-target/'+ip_address+"/";
       method_type = 'GET';
-      $("#output-text").val("");               
+      $("#output-text").val("");     
+      loaderContainer.appendChild(spinner.el);          
     fetch(url, {
     method: method_type,
     headers: {
@@ -66,11 +74,15 @@ function createTarget(){
       createTask(ip_address,response.target_id)
     }
   })
+  .finally(() => {
+    loaderContainer.removeChild(spinner.el);
+   });
 }
 function createTask(ip_address,target_id){
-      url='http://192.168.0.149:8000/create-task/'+ip_address+'/'+target_id+'/';
+      url='http://20.51.254.106:8000/create-task/'+ip_address+'/'+target_id+'/';
       method_type = 'GET';
-      $("#output-text").val("");               
+      $("#output-text").val("");      
+      loaderContainer.appendChild(spinner.el);         
 fetch(url, {
   method: method_type,
   headers: {
@@ -85,12 +97,16 @@ fetch(url, {
     startTask(response.task_id)
   }
  })
+ .finally(() => {
+  loaderContainer.removeChild(spinner.el);
+ });
 }
 
 function startTask(taskid){
-      url='http://192.168.0.149:8000/start-scan/'+taskid+"/";
+      url='http://20.51.254.106:8000/start-scan/'+taskid+"/";
       method_type = 'GET';
-      $("#output-text").val("");               
+      $("#output-text").val(""); 
+      loaderContainer.appendChild(spinner.el);              
 fetch(url, {
   method: method_type,
   headers: {
@@ -105,12 +121,16 @@ fetch(url, {
     getReport(response.report_id)
   }
  })
+ .finally(() => {
+  loaderContainer.removeChild(spinner.el);
+ });
 }
 
 function getReport(reportid){
-      url='http://192.168.0.149:8000/get-report/'+reportid+"/";
+      url='http://20.51.254.106:8000/get-report/'+reportid+"/";
       method_type = 'GET';
-      $("#output-text").val("");               
+      $("#output-text").val("");  
+      loaderContainer.appendChild(spinner.el);             
 fetch(url, {
   method: method_type,
   headers: {
@@ -133,5 +153,8 @@ fetch(url, {
       }
 
   })
+  .finally(() => {
+    loaderContainer.removeChild(spinner.el);
+   });
 }
 });
