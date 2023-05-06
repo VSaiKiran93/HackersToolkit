@@ -117,7 +117,7 @@ def start_task(gmp, task_id):
 with Gmp(connection=connection) as gmp:
 
     def authenticate():
-        gmp.authenticate(username='admin', password='a0c1f76a-7dbe-4a9b-a60a-12e691c197c0')
+        gmp.authenticate(username='admin', password='7571c6a3-bb88-485a-81f6-fafb205a184b')
 
     @require_http_methods(["GET"])
     @csrf_exempt
@@ -129,7 +129,7 @@ with Gmp(connection=connection) as gmp:
     @csrf_exempt
     def default_call(request):
         authenticate()
-        return HttpResponse(gmp.authenticate(username="admin", password="a0c1f76a-7dbe-4a9b-a60a-12e691c197c0"))
+        return HttpResponse(gmp.authenticate(username="admin", password="7571c6a3-bb88-485a-81f6-fafb205a184b"))
 
     @require_http_methods(["GET"])
     @csrf_exempt
@@ -209,25 +209,21 @@ class NmapScanView(APIView):
             cmd = f'sudo nmap -sn {ip}'
         else:
             return Response({'error': f'Scan type "{scan_type}" not supported.'}, status=400)
-        
+
         # SSH connection part
         ssh= paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         pkey = paramiko.RSAKey.from_private_key_file("/root/.ssh/id_rsa")
-        ssh.connect(hostname="20.55.192.74",username="root",pkey=pkey, look_for_keys=False, allow_agent=False)
+        ssh.connect(hostname="74.235.112.174",username="root",pkey=pkey, look_for_keys=False, allow_agent=False)
         stdin, stdout, stderr = ssh.exec_command(cmd)
         result=stdout.read().decode()
         ssh.close()
         print("Results"+result)
 
         # Format output as JSON
-        if result.returncode == 0:
-            output = result
-            output_list = output.split('\n')
-        else:
-            output = ['An error occurred while scanning']
+        output = result
+        output_list = output.split('\n')
 
-        #data = {"output": output}
         return Response(output_list)
 
 
