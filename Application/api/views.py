@@ -25,14 +25,12 @@ from gvmtools.helper import pretty_print as pretty
 from gvm.xml import pretty_print
 import xml.etree.ElementTree as ET
 import paramiko
-import time
 
 # Create your views here
 path = '/run/gvmd/gvmd.sock'
 
 connection = UnixSocketConnection(path=path)
 #connection = SSHConnection(hostname= 'localhost', port=2222, username='azureuser', password=None )
-#gmp = Gmp(connection)
 
 def clean_sensor(gmp: Gmp) -> None:
     tasks = gmp.get_tasks(
