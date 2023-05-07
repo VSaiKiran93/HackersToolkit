@@ -56,7 +56,7 @@ Step-5: Create a virtual environment for Django dependency files
          
          ALLOWED_HOSTS= [ 'Azure public ip']
      
- Step-10: Access the URL using the url patterns specified in api/urls.py
+ Step-11: Access the URL using the url patterns specified in api/urls.py
          http://<"ip'>:8000/
          
          
