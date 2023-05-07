@@ -17,6 +17,15 @@ Step-4: Install Nmap in Kali linux outside the virtual environment to execute co
 
         sudo apt-get install nmap
         
+Step-5: Install the OpenVAS server by running and setup the server and make sure to keep the generated username and password after completing the gvm-setup,
+
+        sudo apt-get install gvm
+        sudo apt-get install gvm-setup
+        
+Step-6: Check the check gvm-setup, where everything is alright
+
+        sudo gvm-check-setup
+        
 Step-5: Create a virtual environment for Django dependency files
 
         virtualenv v-env
