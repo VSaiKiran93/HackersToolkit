@@ -15,7 +15,7 @@ Step-3: Run the below commands,
         
 Step-4: Install Nmap in Kali linux outside the virtual environment to execute commands for scanning
 
-          sudo apt-get install nmap
+        sudo apt-get install nmap
         
 Step-5: Create a virtual environment for Django dependency files
 
@@ -25,19 +25,63 @@ Step-5: Create a virtual environment for Django dependency files
  
         source v-env/bin/activate
  
- Step-7: Install Django and django rest framework
+ Step-7: Install Django, django rest framework, dependencies
  
-         pip install django
-         pip install djangorestframework
-         pip install djangocors-headers
+         pip3 install django
+         pip3 install djangorestframework
+         pip3 install django-cors-headers
+         pip3 install requests
+         pip3 install python-gvm
+         pip3 install gvm-tools
+         pip3 install paramiko
          
- Step-8: Run the django development server using 
+ Step-8: Start the OpenVAS server by running the command,
+ 
+         sudo gvm-start
+         
+ Step-9: Make sure to change the ownership of the gvmd.sock file after running the OpenVAS server every time you login,
+     
+         cd 
+         cd /run/gvmd/
+         ls -ltr
+         sudo chmod root:_gvm gvmd.sock
+         sudo chown a+rw gvmd.sock
+         
+ Step-9: Run the django development server using 
  
          python3 manage.py runserver 0.0.0.0:8000
          
- Step-9: If you are running in a Azure VM, make sure you configure WebApp/settings.py ALLOWED_HOSTS,
+ Step-10: If you are running in a Azure VM, make sure you configure WebApp/settings.py ALLOWED_HOSTS,
          nano WebApp/settings.py
+         
          ALLOWED_HOSTS= [ 'Azure public ip']
      
  Step-10: Access the URL using the url patterns specified in api/urls.py
          http://<"ip'>:8000/
+         
+         
+ **For Two VM Connection, The below are the following steps to establish connection.**
+  
+ Step-1: First login to the user and Go to directory of ssh by running the command,
+  
+          sudo -i
+          cd .ssh
+          
+ Step-2: Generate pair of public and private keys in both the Azure VMs(which we are going to use for SSH connection)
+  
+          ssh-keygen -t rsa
+          
+ Step-3: Now, verify/view the content of the rsa public key by running the command in the both the VMs,
+  
+          less id_rsa.pub
+          
+ Step-4: Append the rsa public key(id_rsa.pub) of backend VM(where our Nmap tool is running) and copy it to the application VM authorised_keys file.
+  
+ Step-5: Now, test the ssh connection by running,
+   
+          root@<backend-ip>
+          
+ Step-6: You can run the django development server in application VM after making the changes to establish the connection between Application VM and Backend VM,
+  
+          python3 manage.py runserver 0.0.0.0:8000
+  
