@@ -2,10 +2,12 @@
 
 Step-1: Install Kali linux in the Azure VM.
 
-Step-2: clone the project using 
+Step-2: clone the project using
+
         git clone https://github.com/VSaiKiran93/HackersToolkit.git
 
 Step-3: Run the below commands,
+
         sudo apt-get update
         sudo apt-get upgrade
         sudo apt-get install python3-pip
