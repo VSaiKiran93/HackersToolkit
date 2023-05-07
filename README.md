@@ -28,6 +28,7 @@ Step-6: Check the check gvm-setup, where everything is alright
         
 Step-7: Create a virtual environment for Django dependency files
 
+        cd HackersToolkit/Application
         virtualenv v-env
         
 Step-8: Activate the virtual environment for django project setup
