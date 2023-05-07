@@ -69,6 +69,7 @@ Step-14: Access the URL using the url patterns specified in api/urls.py
          http://<"ip'>:8000/
          
          
+         
 **For Two VM Connection, The below are the following steps to establish connection.**
   
 Step-1: First login to the user and Go to directory of ssh by running the command,
