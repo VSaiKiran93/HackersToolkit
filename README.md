@@ -12,20 +12,25 @@ Step-3: Run the below commands,
         sudo apt-get install virtualenv
         
 Step-4: Install Nmap in Kali linux outside the virtual environment to execute commands for scanning
+
           sudo apt-get install nmap
         
 Step-5: Create a virtual environment for Django dependency files
+
         virtualenv v-env
         
  Step-6: Activate the virtual environment for django project setup
+ 
         source v-env/bin/activate
  
  Step-7: Install Django and django rest framework
+ 
          pip install django
          pip install djangorestframework
          pip install djangocors-headers
          
  Step-8: Run the django development server using 
+ 
          python3 manage.py runserver 0.0.0.0:8000
          
  Step-9: If you are running in a Azure VM, make sure you configure WebApp/settings.py ALLOWED_HOSTS,
@@ -33,4 +38,4 @@ Step-5: Create a virtual environment for Django dependency files
          ALLOWED_HOSTS= [ 'Azure public ip']
      
  Step-10: Access the URL using the url patterns specified in api/urls.py
-         http://<"ip'>:8000/nmap-scan/
+         http://<"ip'>:8000/
