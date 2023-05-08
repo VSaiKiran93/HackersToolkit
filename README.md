@@ -54,8 +54,8 @@ Step-11: Make sure to change the ownership of the gvmd.sock file after running t
          cd 
          cd /run/gvmd/
          ls -ltr
-         sudo chmod root:_gvm gvmd.sock
-         sudo chown a+rw gvmd.sock
+         sudo chown root:_gvm gvmd.sock
+         sudo chmod a+rw gvmd.sock
          
 Step-12: Run the django development server using 
  
